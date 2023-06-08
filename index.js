@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app=express();
 const port=process.env.PORT || 3000;
 
@@ -45,6 +45,29 @@ async function run() {
     }
      const result=await usersCollection.insertOne(user);
      res.send(result) 
+    })
+    
+    app.patch('/users/admin/:id',async(req,res)=>{
+     const id=req.params.id;
+     const filter={_id: new ObjectId(id)};
+     const updateDoc={
+      $set:{
+       role:'Admin'
+      }
+     }
+     const result=await usersCollection.updateOne(filter,updateDoc);
+     res.send(result)
+    })
+    app.patch('/users/instructor/:id',async(req,res)=>{
+     const id=req.params.id;
+     const filter={_id: new ObjectId(id)};
+     const updateDoc={
+      $set:{
+       role:'Instructor'
+      }
+     }
+     const result=await usersCollection.updateOne(filter,updateDoc);
+     res.send(result)
     })
 
     // Send a ping to confirm a successful connection
