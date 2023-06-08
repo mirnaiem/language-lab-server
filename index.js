@@ -27,7 +27,20 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const 
+          
+    const usersCollection=client.db("assignment12").collection('users')
+
+    // users related api's
+    app.post('/users',async(req,res)=>{
+     const user=req.body;
+     const email={email:user.email}
+    const existingUser=await usersCollection.findOne(email)
+    if(existingUser){
+     return res.send({message:'user already exist'})
+    }
+     const result=await usersCollection.insertOne(user);
+     res.send(result) 
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
