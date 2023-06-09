@@ -153,12 +153,56 @@ app.post('/jwt',(req,res)=>{
    res.send(result)
   })
 
+  app.get('/classes', async (req, res) => {
+    const status = 'Approve'; 
+    const result = await classCollection.find({ status }).toArray();
+    res.send(result);
+  });
+  
   app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
     console.log(query);
     const result= await classCollection.insertOne(query);
     res.send(result)
   })
+
+  app.patch('/classes/approve/:id',verifyJWT,verifyAdmin, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+     $set: {
+      status: 'Approve'
+     }
+    }
+    const result = await classCollection.updateOne(filter, updateDoc);
+    res.send(result)
+   })
+   
+  app.patch('/classes/deny/:id',verifyJWT,verifyAdmin, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+     $set: {
+      status: 'Deny'
+     }
+    }
+    const result = await classCollection.updateOne(filter, updateDoc);
+    res.send(result)
+   })
+
+  app.post('/classes/feedback/:id',verifyJWT,verifyAdmin, async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) };
+    const feedbackInfo=req.body;
+    console.log(feedbackInfo)
+    const updateDoc = {
+     $set: {
+      feedback:feedbackInfo.feedback
+     }
+    }
+    const result = await classCollection.updateOne(filter, updateDoc);
+    res.send(result)
+   })
 
   // Send a ping to confirm a successful connection
   await client.db("admin").command({ ping: 1 });
