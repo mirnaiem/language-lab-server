@@ -46,6 +46,25 @@ async function run() {
   const usersCollection = client.db("assignment12").collection('users')
   const classCollection = client.db("assignment12").collection('classes')
 
+  const verifyAdmin=async(req,res,next)=>{
+    const email=req.decoded.email;
+    const query={email:email};
+    const user=await usersCollection.findOne(query);
+    if(user?.role !== 'Admin'){
+      return res.status(403).send({error:true, message:'forbidden user'} )
+    }
+    next()}
+
+  const verifyInstructor=async(req,res,next)=>{
+    const email=req.decoded.email;
+    const query={email:email};
+    const user=await usersCollection.findOne(query);
+    if(user?.role !== 'Instructor'){
+      return res.status(403).send({error:true, message:'forbidden user'} )
+    }
+    next()
+  }
+
   // Jwt
 app.post('/jwt',(req,res)=>{
  const user=req.body;
@@ -80,12 +99,13 @@ app.post('/jwt',(req,res)=>{
     res.send(result)
   })
 
-  app.get('/users', async (req, res) => {
+  app.get('/users',verifyJWT,verifyAdmin, async (req, res) => {
    const query = req.body;
    const result = await usersCollection.find(query).toArray();
    res.send(result);
   })
-  app.post('/users', async (req, res) => {
+
+  app.post('/users',verifyJWT,verifyAdmin, async (req, res) => {
    const user = req.body;
    const email = { email: user.email }
    const existingUser = await usersCollection.findOne(email)
@@ -120,8 +140,19 @@ app.post('/jwt',(req,res)=>{
   })
 
   // class related api's
+  app.get('/classes',verifyJWT,verifyAdmin,async(req,res)=>{
+    const classes=req.body;
+    const result=await classCollection.find(classes).toArray()
+  })
 
-  app.post('/classes',async(req,res)=>{
+  app.get('/classes/instructor/:email',verifyJWT,verifyInstructor,async(req,res)=>{
+   const email=req.params.email;
+   const query={instructorEmail:email}
+   const result=await classCollection.find(query).toArray();
+   res.send(result)
+  })
+
+  app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
     console.log(query);
     const result= await classCollection.insertOne(query);
