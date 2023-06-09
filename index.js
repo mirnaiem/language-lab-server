@@ -140,12 +140,13 @@ app.post('/jwt',(req,res)=>{
   })
 
   // class related api's
-  app.get('/classes',verifyJWT,verifyAdmin,async(req,res)=>{
+  app.get('/admin/classes',verifyJWT,verifyAdmin,async(req,res)=>{
     const classes=req.body;
-    const result=await classCollection.find(classes).toArray()
+    const result=await classCollection.find(classes).toArray();
+    res.send(result)
   })
 
-  app.get('/classes/instructor/:email',verifyJWT,verifyInstructor,async(req,res)=>{
+  app.get('/instructor/classes/:email',verifyJWT,verifyInstructor,async(req,res)=>{
    const email=req.params.email;
    const query={instructorEmail:email}
    const result=await classCollection.find(query).toArray();
