@@ -44,6 +44,7 @@ async function run() {
   await client.connect();
 
   const usersCollection = client.db("assignment12").collection('users')
+  const classCollection = client.db("assignment12").collection('classes')
 
   // Jwt
 app.post('/jwt',(req,res)=>{
@@ -116,6 +117,15 @@ app.post('/jwt',(req,res)=>{
    }
    const result = await usersCollection.updateOne(filter, updateDoc);
    res.send(result)
+  })
+
+  // class related api's
+
+  app.post('/classes',async(req,res)=>{
+    const query=req.body;
+    console.log(query);
+    const result= await classCollection.insertOne(query);
+    res.send(result)
   })
 
   // Send a ping to confirm a successful connection
