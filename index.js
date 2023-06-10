@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.Secret_Key)
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -194,7 +195,6 @@ app.post('/jwt',(req,res)=>{
     const id = req.params.id;
     const filter = { _id: new ObjectId(id) };
     const feedbackInfo=req.body;
-    console.log(feedbackInfo)
     const updateDoc = {
      $set: {
       feedback:feedbackInfo.feedback
@@ -205,12 +205,17 @@ app.post('/jwt',(req,res)=>{
    })
 
    //selected class api's
-  app.get('/selectclass/:email',async(req,res)=>{
+  app.get('/selectclass/:email',verifyJWT,async(req,res)=>{
     const email=req.params?.email;
-    console.log(email);
     const query={email:email};
     const result=await selectCollection.find(query).toArray();
     res.send(result)
+  })
+  app.get('/selectedclass/:id',verifyJWT,async(req,res)=>{
+    const id=req.params.id;
+    const query={_id:new ObjectId(id)}
+    const result=await selectCollection.findOne(query);
+    res.send(result);
   })
    app.post('/selectclass',async(req,res)=>{
     const selectedClass=req.body;
@@ -223,6 +228,20 @@ app.post('/jwt',(req,res)=>{
   const result=await selectCollection.deleteOne(query)
   res.send(result)
  })
+
+//  payment api's
+app.post('/payment-intent',async(req,res)=>{
+  const {price}=req.body;
+  const amount=parseInt(price*100);
+  const paymentIntent =await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    payment_method_types:['card']
+  })
+  res.send({
+    clientSecret:paymentIntent.client_secret
+  })
+})
 
   // Send a ping to confirm a successful connection
   await client.db("admin").command({ ping: 1 });
