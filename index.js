@@ -45,6 +45,7 @@ async function run() {
 
   const usersCollection = client.db("assignment12").collection('users')
   const classCollection = client.db("assignment12").collection('classes')
+  const selectCollection = client.db("assignment12").collection('select')
 
   const verifyAdmin=async(req,res,next)=>{
     const email=req.decoded.email;
@@ -91,11 +92,11 @@ app.post('/jwt',(req,res)=>{
     const email=req.params?.email;
     const decodedEmail=req.decoded?.email;
     if(decodedEmail !== email){
-     return res.send({admin:false})
+     return res.send({instructor:false})
     }
     const query={email:email}
     const user=await usersCollection.findOne(query);
-    const result={admin:user?.role === 'Instructor'};
+    const result={instructor:user?.role === 'Instructor'};
     res.send(result)
   })
 
@@ -202,6 +203,13 @@ app.post('/jwt',(req,res)=>{
     }
     const result = await classCollection.updateOne(filter, updateDoc);
     res.send(result)
+   })
+
+   //selected class api's
+   app.post('/selectclass',async(req,res)=>{
+    const selectedClass=req.body;
+    const result=await selectCollection.insertOne(selectedClass);
+    res.send(result) 
    })
 
   // Send a ping to confirm a successful connection
