@@ -76,24 +76,24 @@ app.post('/jwt',(req,res)=>{
   // users related api's
 
   // admin
-  app.get('/users/admin/:email',verifyJWT,async(req,res)=>{
+  app.get('/users/admin/:email',async(req,res)=>{
     const email=req.params?.email;
     const decodedEmail=req.decoded?.email;
-    if(decodedEmail !== email){
-     return res.send({admin:false})
-    }
+    // if(decodedEmail !== email){
+    //  return res.send({admin:false})
+    // }
     const query={email:email}
     const user=await usersCollection.findOne(query);
     const result={admin:user?.role === 'Admin'};
     res.send(result)
   })
 // instructor
-  app.get('/users/instructor/:email',verifyJWT,async(req,res)=>{
+  app.get('/users/instructor/:email',async(req,res)=>{
     const email=req.params?.email;
     const decodedEmail=req.decoded?.email;
-    if(decodedEmail !== email){
-     return res.send({instructor:false})
-    }
+    // if(decodedEmail !== email){
+    //  return res.send({instructor:false})
+    // }
     const query={email:email}
     const user=await usersCollection.findOne(query);
     const result={instructor:user?.role === 'Instructor'};
@@ -106,7 +106,7 @@ app.post('/jwt',(req,res)=>{
    res.send(result);
   })
 
-  app.post('/users',verifyJWT,verifyAdmin, async (req, res) => {
+  app.post('/users', async (req, res) => {
    const user = req.body;
    const email = { email: user.email }
    const existingUser = await usersCollection.findOne(email)
@@ -117,7 +117,7 @@ app.post('/jwt',(req,res)=>{
    res.send(result)
   })
 
-  app.patch('/users/admin/:id', async (req, res) => {
+  app.patch('/users/admin/:id',verifyJWT,verifyAdmin, async (req, res) => {
    const id = req.params.id;
    const filter = { _id: new ObjectId(id) };
    const updateDoc = {
@@ -128,7 +128,7 @@ app.post('/jwt',(req,res)=>{
    const result = await usersCollection.updateOne(filter, updateDoc);
    res.send(result)
   })
-  app.patch('/users/instructor/:id', async (req, res) => {
+  app.patch('/users/instructor/:id',verifyJWT,verifyAdmin, async (req, res) => {
    const id = req.params.id;
    const filter = { _id: new ObjectId(id) };
    const updateDoc = {
@@ -162,7 +162,6 @@ app.post('/jwt',(req,res)=>{
   
   app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
-    console.log(query);
     const result= await classCollection.insertOne(query);
     res.send(result)
   })
@@ -206,11 +205,24 @@ app.post('/jwt',(req,res)=>{
    })
 
    //selected class api's
+  app.get('/selectclass/:email',async(req,res)=>{
+    const email=req.params?.email;
+    console.log(email);
+    const query={email:email};
+    const result=await selectCollection.find(query).toArray();
+    res.send(result)
+  })
    app.post('/selectclass',async(req,res)=>{
     const selectedClass=req.body;
     const result=await selectCollection.insertOne(selectedClass);
     res.send(result) 
    })
+ app.delete('/selectclass/:id',async(req,res)=>{
+  const id=req.params.id;
+  const query={_id:new ObjectId(id)}
+  const result=await selectCollection.deleteOne(query)
+  res.send(result)
+ })
 
   // Send a ping to confirm a successful connection
   await client.db("admin").command({ ping: 1 });
