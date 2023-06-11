@@ -108,6 +108,12 @@ app.post('/jwt',(req,res)=>{
    res.send(result);
   })
 
+  app.get('/users/instructor', async (req, res) => {
+    const filter = { role: 'Instructor' };
+    const result = await usersCollection.find(filter).toArray();
+    res.send(result);
+  });
+
   app.post('/users', async (req, res) => {
    const user = req.body;
    const email = { email: user.email }
@@ -161,7 +167,9 @@ app.post('/jwt',(req,res)=>{
     const result = await classCollection.find({ status }).toArray();
     res.send(result);
   });
-  
+   
+
+
   app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
     const result= await classCollection.insertOne(query);
@@ -191,49 +199,22 @@ app.post('/jwt',(req,res)=>{
     const result = await classCollection.updateOne(filter, updateDoc);
     res.send(result)
    })
-  //  app.patch('/classes/:id', verifyJWT, async (req, res) => {
-  //   const id = req.params.id;
   
-  //   // Find the class document
-  //   const filter = { _id: new ObjectId(id) };
-  //   const classDoc = await classCollection.findOne(filter);
-  
-  //   if (!classDoc) {
-  //     return res.status(404).json({ message: 'Class not found' });
-  //   }
-  
-  //   const currentEnroll = classDoc.enroll || 0;
-  
-  //   // Prepare the update query
-  //   const updateDoc = {
-  //     $inc: { seat: -1 }, // Decrease seat by 1
-  //     $set: { enroll: (currentEnroll || 0) + 1 } // Set enroll to currentEnroll + 1
-  //   };
-  
-  //   // Perform the update operation
-  //   const result = await classCollection.updateOne(filter, updateDoc);
-  //   res.send(result);
-  // });
   app.patch('/classes/:id', verifyJWT, async (req, res) => {
     const id = req.params.id;
   
-    // Retrieve the current class document from the database
     const filter = { _id: new ObjectId(id) };
     const classDoc = await classCollection.findOne(filter);
-  
-    // Calculate the updated values
+
     const updatedSeat = parseInt(classDoc.seat) - 1;
     const updatedEnroll = (classDoc.enroll || 0) + 1;
-  
-    // Prepare the update query
+    
     const updateDoc = {
       $set: {
         seat: updatedSeat,
         enroll: updatedEnroll
       }
     };
-  
-    // Perform the update operation
     const result = await classCollection.updateOne(filter, updateDoc);
     res.send(result);
   });
@@ -279,11 +260,19 @@ app.post('/jwt',(req,res)=>{
  })
 
 //  payment api
+app.get('/payment/:email',verifyJWT,async(req,res)=>{
+  const email=req.params.email;
+  const query={email:email};
+  const result=await paymentCollection.find(query).sort({ date: -1 }).toArray();
+  res.send(result);
+})
 app.post('/payment',verifyJWT,async(req,res)=>{
   const query=req.body;
   const result=await paymentCollection.insertOne(query);
   res.send(result);
 })
+
+// payment-Intent
 app.post('/payment-intent',async(req,res)=>{
   const {price}=req.body;
   const amount=parseInt(price*100);
