@@ -71,7 +71,7 @@ async function run() {
   // Jwt
 app.post('/jwt',(req,res)=>{
  const user=req.body;
- const token=jwt.sign(user,process.env.Access_Token,{expiresIn: '1h'});
+ const token=jwt.sign(user,process.env.Access_Token,{expiresIn: '6d'});
  res.send({token})
 })
 
@@ -176,6 +176,21 @@ app.post('/jwt',(req,res)=>{
     const result = await classCollection.find(filter).sort(sort).limit(limit).toArray();
     res.send(result);
   });
+ 
+  app.get('/classes/p-instructor', async (req, res) => {
+    const instructorEnrollments = await classCollection.aggregate([
+      { $match: { enroll: { $exists: true } } }, 
+      { $group: { _id: '$instructorEmail', totalEnrollment: { $sum: '$enroll' }, instructorImage: { $first: '$instructorImage' }, instructorName:{$first: '$instructorName'} } }, 
+      { $sort: { totalEnrollment: -1 } }, 
+      { $limit: 5 }, 
+      { $project: { email: '$_id', totalEnrollment: 1,instructorName:1, instructorImage: 1, _id: 0 } }
+    ]).toArray();
+  
+    res.send(instructorEnrollments);
+  });
+  
+  
+  
 
   app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
