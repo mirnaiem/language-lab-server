@@ -107,6 +107,12 @@ app.post('/jwt',(req,res)=>{
    const result = await usersCollection.find(query).toArray();
    res.send(result);
   })
+  app.get('/user/:email',verifyJWT, async (req, res) => {
+   const email = req.params.email;
+   const filter={email: email}
+   const result = await usersCollection.findOne(filter);
+   res.send(result);
+  })
 
   app.get('/users/instructor', async (req, res) => {
     const filter = { role: 'Instructor' };
@@ -182,7 +188,7 @@ app.post('/jwt',(req,res)=>{
       { $match: { enroll: { $exists: true } } }, 
       { $group: { _id: '$instructorEmail', totalEnrollment: { $sum: '$enroll' }, instructorImage: { $first: '$instructorImage' }, instructorName:{$first: '$instructorName'} } }, 
       { $sort: { totalEnrollment: -1 } }, 
-      { $limit: 5 }, 
+      { $limit: 6 }, 
       { $project: { email: '$_id', totalEnrollment: 1,instructorName:1, instructorImage: 1, _id: 0 } }
     ]).toArray();
   
