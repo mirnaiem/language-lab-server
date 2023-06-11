@@ -168,7 +168,14 @@ app.post('/jwt',(req,res)=>{
     res.send(result);
   });
    
-
+  app.get('/classes/enroll', async (req, res) => {
+    const filter = { enroll: { $exists: true } };
+    const sort = { enroll: -1 };
+    const limit = 6;
+  
+    const result = await classCollection.find(filter).sort(sort).limit(limit).toArray();
+    res.send(result);
+  });
 
   app.post('/classes', verifyJWT,verifyInstructor,async(req,res)=>{
     const query=req.body;
