@@ -9,6 +9,7 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(cors())
+
 app.use(express.json())
 
 const verifyJWT=(req,res,next)=>{
@@ -18,8 +19,9 @@ const verifyJWT=(req,res,next)=>{
   }
   const token=authorization.split(' ')[1];
   jwt.verify(token,process.env.ACCESS_TOKEN,(err,decoded)=>{
+    console.log(err);
     if(err){
-    return res.status(401).send({error:true,message:'unauthorized access'})
+    return res.status(401).send({error:true,message:'unauthorized access to'})
 
     }
     req.decoded=decoded;
@@ -42,7 +44,7 @@ const client = new MongoClient(uri, {
 async function run() {
  try {
   // Connect the client to the server	(optional starting in v4.7)
-  await client.connect();
+  
 
   const usersCollection = client.db("assignment12").collection('users')
   const classCollection = client.db("assignment12").collection('classes')
@@ -71,7 +73,7 @@ async function run() {
   // Jwt
 app.post('/jwt',(req,res)=>{
  const user=req.body;
- const token=jwt.sign(user,process.env.Access_Token,{expiresIn: '6d'});
+ const token=jwt.sign(user,process.env.ACCESS_TOKEN,{expiresIn: '6d'});
  res.send({token})
 })
 
@@ -315,7 +317,7 @@ app.post('/payment-intent',async(req,res)=>{
 })
 
   // Send a ping to confirm a successful connection
-  await client.db("admin").command({ ping: 1 });
+  // await client.db("admin").command({ ping: 1 });
   console.log("Pinged your deployment. You successfully connected to MongoDB!");
  } finally {
   // Ensures that the client will close when you finish/error
